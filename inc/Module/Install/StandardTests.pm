@@ -136,5 +136,7 @@ sub write_standard_test_perl_critic {
 
 __END__
 
-#line 264
+{% USE p = PodGenerated %}
+
+#line 266
 

@@ -4,6 +4,15 @@ global:
 releases:
   - author: 'Marcel Gruenauer <marcel@cpan.org>'
     changes:
+      - set the version to 0.02
+      - added explanation of why username and password aren't kept in .shipit
+      - 'Makefile.PL: added auto_install() and process_templates()'
+      - updated MANIFEST
+    date: 2007-11-16T14:08:30Z
+    tags: []
+    version: 0.02
+  - author: 'Marcel Gruenauer <marcel@cpan.org>'
+    changes:
       - original version
     date: 2007-11-15T15:04:38Z
     tags: []

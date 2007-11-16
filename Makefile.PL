@@ -11,10 +11,6 @@ requires 'YAML';
 
 build_requires 'Test::More' => '0.70';
 
-# feature 'Generated documentation',
-#     - default => 1,
-#     'Pod::Generated' => '0.02';
-
 process_templates(
     first_year => 2007,
     rest_from  => "$ENV{HOME}/.mitlib/standard_pod",

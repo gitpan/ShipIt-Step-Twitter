@@ -6,7 +6,7 @@ use Net::Twitter;
 use YAML 'LoadFile';
 
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 use base qw(ShipIt::Step);
@@ -104,6 +104,12 @@ like this:
 
     username: foobar
     password: flurble
+
+The reason not to keep the username and password in the C<.shipit> file
+directly has to with security. The C<.shipit> file will generally be in the
+distribution's base directory, so it is easy to make a mistake and to include
+it in the C<MANIFEST>. This would lead to the password being published on
+CPAN.
 
 C<twitter.message> is the message to send to Twitter. You can use the
 placeholder C<%v>, which will be expanded to the version of the distribution
