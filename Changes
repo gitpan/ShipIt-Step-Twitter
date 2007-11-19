@@ -4,6 +4,16 @@ global:
 releases:
   - author: 'Marcel Gruenauer <marcel@cpan.org>'
     changes:
+      - set the version to 0.03
+      - new config key 'twitter.distname'
+      - 'more replacement variables: %d = distname, %u = CPAN URL'
+      - updated .shipit with more descriptive twitter.message
+      - added documentation for th new features
+    date: 2007-11-19T20:50:00Z
+    tags: []
+    version: 0.03
+  - author: 'Marcel Gruenauer <marcel@cpan.org>'
+    changes:
       - set the version to 0.02
       - added explanation of why username and password aren't kept in .shipit
       - 'Makefile.PL: added auto_install() and process_templates()'

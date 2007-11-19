@@ -3,6 +3,7 @@ package Module::Install::Template;
 
 use strict;
 use warnings;
+use Cwd;
 use File::Temp 'tempfile';
 use Data::Dumper;
 
@@ -70,6 +71,7 @@ sub process_templates {
             year     => $self->year_str($args{first_year}),
             tag      => $self->tag,
             rt_email => $self->rt_email,
+            base_dir => getcwd(),
             (@other_authors ? (other_authors => \@other_authors) : ()),
         },
     };
@@ -167,7 +169,5 @@ EOPOSTAMBLE
 
 __END__
 
-{% USE p = PodGenerated %}
-
-#line 229
+#line 261
 

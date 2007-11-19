@@ -6,7 +6,7 @@ use Net::Twitter;
 use YAML 'LoadFile';
 
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 use base qw(ShipIt::Step);
@@ -29,17 +29,25 @@ sub init {
     defined $self->{config}{password} or
         die "$config_file: no password defined\n";
 
-    my $message = $conf->value('twitter.message');
-    defined $message || die "twitter.message not defined in config\n";
-    $self->{message} = $message;
+    for my $key (qw(distname message)) {
+        my $value = $conf->value("twitter.$key");
+        defined $value || die "twitter.$key not defined in config\n";
+        $self->{$key} = $value;
+    }
 }
 
 
 sub run {
     my ($self, $state) = @_;
 
-    my $version = $state->version;
-    (my $message = $self->{message}) =~ s/%v/$version/ge;
+    my %vars = (
+        d => $self->{distname},
+        u => "http://search.cpan.org/dist/$self->{distname}",
+        v => $state->version,
+        '%' => '%'
+    );
+
+    (my $message = $self->{message}) =~ s/%(.)/ $vars{$1} || '%'.$1 /ge;
 
     # warn(), don't die(), if we couldn't send the message, because this
     # step will presumably come after uploading to CPAN, so we don't want
@@ -93,14 +101,18 @@ die just because you're not able to twitter.
 In the C<.shipit> file:
 
     twitter.config = /path/to/config/file
-    twitter.message = shipped Foo-Bar %v
+    twitter.distname = Foo-Bar
+    twitter.message = shipped %d %v - soon at %u
 
-You have to define two configuration values for this step.
+You have to define three configuration values for this step:
 
-C<twitter.config> is the location of the file that contains the Twitter
-username and password in YAML style. I keep mine in C<~/.twitterrc>. The first
-tilde is expanded to the user's home directory. An example file could look
-like this:
+=over 4
+
+=item twitter.config
+
+This is the location of the file that contains the Twitter username and
+password in YAML style. I keep mine in C<~/.twitterrc>. The first tilde is
+expanded to the user's home directory. An example file could look like this:
 
     username: foobar
     password: flurble
@@ -111,14 +123,48 @@ distribution's base directory, so it is easy to make a mistake and to include
 it in the C<MANIFEST>. This would lead to the password being published on
 CPAN.
 
-C<twitter.message> is the message to send to Twitter. You can use the
-placeholder C<%v>, which will be expanded to the version of the distribution
-you're shipping.
+=item twitter.distname
+
+This is the distribution's name.
+
+=item twitter.message
+
+This is the message to send to Twitter. You can use placholders, which will be
+expanded. The following placeholders are recognized:
+
+=over 4
+
+=item %d
+
+Will be expanded to the distribution name that you defined in
+C<twitter.distname>.
+
+=item %u
+
+Will be expanded to the distribution's CPAN URL - if the distribution name is
+C<Foo-Bar>, for example, the URL will be
+C<http://search.cpan.org/dist/Foo-Bar>.
+
+=item %v
+
+Will be expanded to the version of the distribution you're shipping.
+
+=item %%
+
+Will result in a percent sign.
+
+=back
+
+=back
 
 =head1 TAGS
 
 If you talk about this module in blogs, on del.icio.us or anywhere else,
 please use the C<shipitsteptwitter> tag.
+
+=head1 VERSION 
+                   
+This document describes version 0.03 of L<ShipIt::Step::Twitter>.
 
 =head1 BUGS AND LIMITATIONS
 
