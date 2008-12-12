@@ -6,7 +6,7 @@ use Net::Twitter;
 use YAML 'LoadFile';
 
 
-our $VERSION = '0.03';
+our $VERSION = '0.05';
 
 
 use base qw(ShipIt::Step);
@@ -29,21 +29,33 @@ sub init {
     defined $self->{config}{password} or
         die "$config_file: no password defined\n";
 
-    for my $key (qw(distname message)) {
-        my $value = $conf->value("twitter.$key");
-        defined $value || die "twitter.$key not defined in config\n";
-        $self->{$key} = $value;
-    }
+    $self->{message} =
+        $conf->value('twitter.message') || 'shipped %d %v - soon at %u';
+
+    $self->{distname} = $conf->value('twitter.distname');
+    defined $self->{distname} || print
+        "twitter.distname not defined; will try to read it from META.yml later.\n";
 }
 
 
 sub run {
     my ($self, $state) = @_;
 
+    my $version = $state->version;
+    my $metafile = 'META.yml';
+    if (!(defined $self->{distname}) && -e $metafile) {
+        print "twitter.distname not defined; reading $metafile...\n";
+        my $meta = LoadFile($metafile);
+        $self->{distname} = $meta->{name};
+        $version ||= $meta->{version};
+    }
+    defined $self->{distname} || die
+        "twitter.distname not defined in config, and can't read it from META.yml\n";
+
     my %vars = (
         d => $self->{distname},
         u => "http://search.cpan.org/dist/$self->{distname}",
-        v => $state->version,
+        v => $version,
         '%' => '%'
     );
 
@@ -73,11 +85,9 @@ sub run {
 
 __END__
 
-
-
 =head1 NAME
 
-ShipIt::Step::Twitter - ShipIt step to announce to upload on Twitter
+ShipIt::Step::Twitter - ShipIt step to announce the upload on Twitter
 
 =head1 SYNOPSIS
 
@@ -104,7 +114,7 @@ In the C<.shipit> file:
     twitter.distname = Foo-Bar
     twitter.message = shipped %d %v - soon at %u
 
-You have to define three configuration values for this step:
+You can define three configuration values for this step:
 
 =over 4
 
@@ -123,14 +133,23 @@ distribution's base directory, so it is easy to make a mistake and to include
 it in the C<MANIFEST>. This would lead to the password being published on
 CPAN.
 
+This variable is mandatory.
+
 =item twitter.distname
 
-This is the distribution's name.
+This variable is optional; it is the distribution's name. If the variable is
+not defined, the step will try to read the distribution name from the META.yml
+file.
 
 =item twitter.message
 
-This is the message to send to Twitter. You can use placholders, which will be
-expanded. The following placeholders are recognized:
+This variable is optional; it is the message to send to Twitter. You can use
+placeholders, which will be expanded. If the variable is not defined, this
+default message will be used:
+
+    shipped %d %v - soon at %u
+
+The following placeholders are recognized:
 
 =over 4
 
@@ -157,21 +176,26 @@ Will result in a percent sign.
 
 =back
 
-=head1 TAGS
+=head1 FUNCTIONS
 
-If you talk about this module in blogs, on del.icio.us or anywhere else,
-please use the C<shipitsteptwitter> tag.
+=over 4
 
-=head1 VERSION 
-                   
-This document describes version 0.03 of L<ShipIt::Step::Twitter>.
+=item init
+
+Initializes the ShipIt step object from the shipit configuration file and then
+the twitter configuration file.
+
+=item run
+
+Does the actual twittering.
+
+=back
 
 =head1 BUGS AND LIMITATIONS
 
 No bugs have been reported.
 
-Please report any bugs or feature requests to
-C<<bug-shipit-step-twitter@rt.cpan.org>>, or through the web interface at
+Please report any bugs or feature requests through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 INSTALLATION
@@ -184,13 +208,13 @@ The latest version of this module is available from the Comprehensive Perl
 Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
 site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007 by Marcel GrE<uuml>nauer
+Copyright 2007-2008 by the authors.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
